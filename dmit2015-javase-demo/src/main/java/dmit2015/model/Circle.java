@@ -24,7 +24,10 @@ public class Circle {
         Circle currentCircle = new Circle();
         currentCircle.setRadius(5);
 
-        System.out.printf("Radius: %.2f, Area= %.2f\n", currentCircle.getRadius(), currentCircle.area());
+        System.out.printf(
+                "Radius: %.2f, Area= %.2f\n",
+                currentCircle.getRadius(),
+                currentCircle.area());
 
 
     }
