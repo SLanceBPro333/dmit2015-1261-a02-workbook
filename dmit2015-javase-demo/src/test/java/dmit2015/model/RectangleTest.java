@@ -5,6 +5,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.*;
 
 public class RectangleTest {
     @Test
-    public void testArea() {}
+    void testRectangle() {
+
+        Rectangle rectangle = new Rectangle();
+        rectangle.setLength(5);
+        rectangle.setWidth(5);
+
+        assertThat(rectangle.area()).isCloseTo(78.54, within(0.01));
+        assertThat(rectangle.perimeter()).isCloseTo(78.54, within(0.01));
+    }
 }
-//Umm...
