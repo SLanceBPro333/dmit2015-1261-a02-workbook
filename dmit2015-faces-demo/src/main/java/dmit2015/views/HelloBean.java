@@ -25,7 +25,7 @@ public class HelloBean {
 
     public String onSubmit() {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("FacesMessage from Java part" + userInput));
-//        userInput = null;
+        //userInput = null;
         return null;
     }
 }
