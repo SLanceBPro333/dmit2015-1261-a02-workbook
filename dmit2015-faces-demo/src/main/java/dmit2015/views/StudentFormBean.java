@@ -52,9 +52,9 @@ public class StudentFormBean implements Serializable {
 
         FacesContext.getCurrentInstance().addMessage(null, message);
 
-        fullName = null;
-        program = null;
-        fullTime = true;
+//        fullName = null;
+//        program = null;
+//        fullTime = true;
 
     }
 }
