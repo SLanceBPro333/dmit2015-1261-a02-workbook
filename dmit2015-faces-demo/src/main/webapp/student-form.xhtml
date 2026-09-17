@@ -4,23 +4,48 @@
       xmlns:h="jakarta.faces.html"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
       xmlns="http://www.w3.org/1999/xhtml">
-<head>
+<h:body>
     <meta charset="UTF-8"/>
-    <title>Simple Facelet Page</title>
-</head>
-<body>
-<ui:fragment>
+    <title>Student Form</title>
+</h:body>
 
-</ui:fragment>
+<h:body>
+
 
 <h:form>
-    <h:outputLabel for="name" value=""/>
-    <h:inputText id="name" value=""/>
-    <h:commandButton value="Submit" action=""/>
+    <p:messages showDetail="true"/>
+    <p:panel header="Student Registration">
+
+        <p:outputLabel for ="fullName" value="Full Name" />
+        <p:inputText id="fullName" value="#{studentFormBean.fullName}"
+            required="true" requiredMessage="Full name is Required" />
+        <br/><br/>
+
+        <p:outputLabel for ="program" value="Program" />
+        <p:selectOneMenu id="program" value="#{studentFormBean.program}"
+                         required="true" requiredMessage="Program is Required" >
+            <f:selectItem itemLabel="Select Program"
+                          itemValue=""
+                          noSelectionOption="true"/>
+
+            <f:selectItem itemLabel="Digital Media"
+                          itemValue="DMIT" />
+
+            <f:selectItem itemLabel="Software Dev"
+                          itemValue="SDEV" />
+        </p:selectOneMenu>
+        <br/><br/>
+
+        <p:selectBooleanCheckbox id = "fullTime" value="#{studentFormBean.fullTime}" />
+
+        <p:outputLabel for ="fullTime" value="Full-time Student" />
+
+        <p:commandButton value="Submit" action="#{studentFormBean.submit()}"
+                         update="@form" process="@form" />
+
+    </p:panel>
+
 </h:form>
 
-<ui:fragment>
-
-</ui:fragment>
-</body>
+</h:body>
 </html>
