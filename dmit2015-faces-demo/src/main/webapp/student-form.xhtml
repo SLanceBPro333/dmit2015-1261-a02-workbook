@@ -19,7 +19,7 @@
 
             <p:outputLabel for="fullName" value="Full Name" />
             <p:inputText id="fullName"
-                         value="#{studentFormBean.studentInfo.fullTime}"
+                         value="#{studentFormBean.studentInfo.fullName}"
                          required="true"
                          requiredMessage="Full Name is required" />
             <br /><br />
@@ -56,6 +56,39 @@
 
         </p:panel>
 
+
+
+        <p:dataTable id = "studentsDataTable"
+                     value="#{studentListSession.students}"
+                     var = "currentStudent">
+
+            <p:column headerText="Full Name">
+                <h:outputText value="#{currentStudent.fullName}" />
+
+            </p:column>
+
+            <p:column headerText="Program">
+                <h:outputText value="#{currentStudent.program}" />
+
+            </p:column>
+
+            <p:column headerText="Full Time">
+                <h:selectBooleanCheckbox value="#{currentStudent.fullTime}" disabled="true"/>
+
+            </p:column>
+
+        <p:column headerText="Action">
+            <p:commandButton value="Remove"
+                             action="#{studentListSession.remove(currentStudent)}"
+                             update="studentsDataTable"
+                             process="@this" />
+
+
+
+
+        </p:column>
+
+        </p:dataTable>
 
 
     </h:form>

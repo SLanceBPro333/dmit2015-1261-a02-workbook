@@ -17,4 +17,13 @@ public class StudentListSession implements Serializable {
     public List<StudentInfo> getStudents() {
         return students;
     }
+
+    public void add(StudentInfo newStudentInfo) {
+        students.add(newStudentInfo);
+    }
+
+    public void remove(StudentInfo existingStudentInfo) {
+        students.remove(existingStudentInfo);
+    }
+
 }

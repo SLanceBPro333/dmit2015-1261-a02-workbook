@@ -14,10 +14,12 @@ import java.io.Serializable;
 public class StudentFormBean implements Serializable {
 
     private int submissionCount;
-
     public int getSubmissionCount() {
         return submissionCount;
     }
+
+    @Inject
+    private StudentListSession studentListSession;
 
     private StudentInfo studentInfo = new StudentInfo();
 
@@ -31,6 +33,8 @@ public class StudentFormBean implements Serializable {
 
     public void submit() {
         submissionCount++;
+
+        studentListSession.add(studentInfo);
 
         FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Form Submitted: ",
                 String.format("Welcome %s to %s program (%s)", studentInfo.getFullName(), studentInfo.getProgram(), studentInfo.isFullTime() ? "Full Time" : "Part Time"));

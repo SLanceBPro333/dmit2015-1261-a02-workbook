@@ -1,6 +1,7 @@
 package dmit2015.model;
 
 public class StudentInfo {
+
     private String fullName;
     private String program;
     private boolean fullTime;
