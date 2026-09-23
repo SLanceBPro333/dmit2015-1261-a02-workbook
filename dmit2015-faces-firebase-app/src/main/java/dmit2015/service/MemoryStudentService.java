@@ -18,20 +18,17 @@ public class MemoryStudentService implements StudentService {
 
     List<Student> students = new ArrayList<>();
 
-    private List<Student> getAllStudents() {
-        List<Student> student = new ArrayList<>();
-    }
-
     @PostConstruct
-    void init() {
+    void  init(){
         //generate 10 students
         var faker = new Faker();
-        for (int count = 1; count <= 10; count++) {
+        for (int count= 1; count<=10; count++){
             Student newStudent = Student.of(faker);
             students.add(newStudent);
 
         }
     }
+
 
     @Override
     public Student createStudent(Student student) {
@@ -42,8 +39,9 @@ public class MemoryStudentService implements StudentService {
 
     @Override
     public Optional<Student> getStudentById(String id) {
-        return student.stream().filter(s -> s.getId().equals(id)).findFirst();
+        return students.stream().filter(s -> s.getId().equals(id)).findFirst();
     }
+
 
 
     @Override
@@ -59,10 +57,11 @@ public class MemoryStudentService implements StudentService {
     @Override
     public void deleteStudentById(String id) {
         Optional<Student> maybeStudent = getStudentById(id);
-        if (maybeStudent.isPresent()) {
+        if (maybeStudent.isPresent()){
             Student existingStudent = maybeStudent.orElseThrow();
             students.remove(existingStudent);
 
         }
+
     }
 }
