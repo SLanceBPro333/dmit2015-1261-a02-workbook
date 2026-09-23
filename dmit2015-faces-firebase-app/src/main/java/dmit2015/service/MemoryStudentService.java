@@ -16,6 +16,8 @@ import java.util.UUID;
 
 public class MemoryStudentService implements StudentService {
 
+    List<Student> students = new ArrayList<>();
+
     private List<Student> getAllStudents() {
         List<Student> student = new ArrayList<>();
     }
