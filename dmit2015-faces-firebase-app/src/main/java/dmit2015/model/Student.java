@@ -15,13 +15,11 @@ public class Student {
 
     @NotBlank(message = "First Name is Required")
     @Size(min=1, message = "first name must contain at least {min} or more characters")
-
     private String firstName;
 
 
     @NotBlank(message = "Last Name is Required")
     @Size(min=2, message = "last name must contain at least {min} or more characters")
-
     private String lastName;
 
     public static Student of(Faker faker){
