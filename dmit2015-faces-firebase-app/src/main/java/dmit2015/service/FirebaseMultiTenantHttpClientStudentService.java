@@ -1,5 +1,6 @@
 package dmit2015.service;
 
+import dmit2015.view.FirebaseAuthSignInSession;
 import dmit2015.model.Student;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -9,8 +10,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import java.util.UUID;
-//?
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,17 +19,37 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 /**
- * This class implements the StudentService using the HttpClient library to send Http Request to the Firebase Realtime Database REST API.
+ * This class implements the StudentService using the HttpClient library
+ * to send Http Request to the Firebase Realtime Database REST API.
+ * <p>
+ * Verify that you have set up the following Rules in your Firebase Realtime Database
+ * where the multi-tenant data is in a root path name "multi_tenant_data".
+ * <p>
+ * {
+ * "rules": {
+ * "multi_tenant_data": {
+ * "Student": {
+ * "$uid": {
+ * // Allow only authenticated content owners access to their data
+ * ".read": "auth !== null && auth.uid === $uid",
+ * ".write": "auth !== null && auth.uid === $uid"
+ * }
+ * }
+ * }
+ * }
+ * }
  */
 
-@Named("firebaseHttpClientStudentService")
+@Named("firebaseMultiTenantHttpClientStudentService")
 @ApplicationScoped
-public class FirebaseStudentService implements StudentService {
+public class FirebaseMultiTenantHttpClientStudentService implements StudentService {
     /**
-     * The base URL to the Firebase Realtime Database that is defined in `src/main/resources/META-INF/microprofile-config.properties` file.
+     * The base URL to the Firebase Realtime Database that is defined in
+     * `src/main/resources/META-INF/microprofile-config.properties` file.
+     *
      */
     @Inject
     @ConfigProperty(name = "firebase.rtdb.base.url")
@@ -50,6 +70,11 @@ public class FirebaseStudentService implements StudentService {
      */
     private Jsonb jsonb;
 
+    @Inject
+    private FirebaseAuthSignInSession firebaseAuthSignInSession;
+
+    private static final String MULTI_TENANT_PATH_PREFIX = "multi_tenant_data";
+
     @PostConstruct
     private void init() {
         httpClient = HttpClient.newHttpClient();
@@ -63,14 +88,20 @@ public class FirebaseStudentService implements StudentService {
      */
     @Override
     public Student createStudent(Student student) {
-        // Explicitly set the id value for the object to be created.
-        student.setId(UUID.randomUUID().toString());
 
-        // Build the url path to object to create
-        jsonAllDataPath = String.format("%s/%s/%s.json",
+        // Get the Firebase Authenticated userId and token.
+        String firebaseUserId = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getLocalId();
+        String firebaseToken = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getIdToken();
+        String modelInstanceId = UUID.randomUUID().toString();
+        // Set the path in the database for content-owner access only data
+        jsonAllDataPath = String.format("%s/%s/%s/%s/%s.json?auth=%s",
                 firebaseRtdbBaseUrl,
+                MULTI_TENANT_PATH_PREFIX,
                 Student.class.getSimpleName(),
-                student.getId());
+                firebaseUserId,
+                modelInstanceId,
+                firebaseToken);
+
         // Convert the Java object to a JSON string using JSONB
         String requestBodyJson = jsonb.toJson(student);
 
@@ -87,8 +118,9 @@ public class FirebaseStudentService implements StudentService {
             if (httpResponse.statusCode() == 200) {
                 // Get the body of the Http Response
                 var responseBodyJson = httpResponse.body();
-                // Convert the JSON String to a Student
+                // Convert the response JSON String to a Student
                 student = jsonb.fromJson(responseBodyJson, Student.class);
+
             } else {
                 String errorMessage = String.format("Create was not successful with status code: %s", httpResponse.statusCode());
                 throw new RuntimeException(errorMessage);
@@ -101,14 +133,22 @@ public class FirebaseStudentService implements StudentService {
 
     @Override
     public Optional<Student> getStudentById(String id) {
-        // Build the url path to object to update
-        String jsonSingleDataPath = String.format("%s/%s/%s.json",
-                firebaseRtdbBaseUrl, Student.class.getSimpleName(), id);
+        // Build the url path to object to access
+        String firebaseUserId = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getLocalId();
+        String firebaseToken = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getIdToken();
+        String jsonSingleDataPath = String.format("%s/%s/%s/%s/%s.json?auth=%s",
+                firebaseRtdbBaseUrl,
+                MULTI_TENANT_PATH_PREFIX,
+                Student.class.getSimpleName(),
+                firebaseUserId,
+                id,
+                firebaseToken);
+
         try {
             // Create an GET Http Request to fetch all data
             var httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(jsonSingleDataPath))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Content-Type", "application/json")
                     .GET()
                     .build();
             // Send the GET Http Request
@@ -136,8 +176,17 @@ public class FirebaseStudentService implements StudentService {
 
     @Override
     public List<Student> getAllStudents() {
-        // Build the url path to object to get all data
-        jsonAllDataPath = String.format("%s/%s.json", firebaseRtdbBaseUrl, Student.class.getSimpleName());
+        // Get the Firebase Authenticated userId and token.
+        String firebaseUserId = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getLocalId();
+        String firebaseToken = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getIdToken();
+        // Set the path in the database for content-owner access only data
+        jsonAllDataPath = String.format("%s/%s/%s/%s.json?auth=%s",
+                firebaseRtdbBaseUrl,
+                MULTI_TENANT_PATH_PREFIX,
+                Student.class.getSimpleName(),
+                firebaseUserId,
+                firebaseToken);
+
         // Create an GET Http Request to fetch all data
         var httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(jsonAllDataPath))
@@ -180,9 +229,16 @@ public class FirebaseStudentService implements StudentService {
      */
     @Override
     public Student updateStudent(Student student) {
-        // Build the url path to object to update
-        String jsonSingleDataPath = String.format("%s/%s/%s.json",
-                firebaseRtdbBaseUrl, Student.class.getSimpleName(), student.getId());
+        // Build the url path to object to access
+        String firebaseUserId = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getLocalId();
+        String firebaseToken = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getIdToken();
+        String jsonSingleDataPath = String.format("%s/%s/%s/%s/%s.json?auth=%s",
+                firebaseRtdbBaseUrl,
+                MULTI_TENANT_PATH_PREFIX,
+                Student.class.getSimpleName(),
+                firebaseUserId,
+                student.getId(),
+                firebaseToken);
 
         // Convert the Java object to a JSON string using JSONB
         String requestBodyJson = jsonb.toJson(student);
@@ -215,9 +271,17 @@ public class FirebaseStudentService implements StudentService {
      */
     @Override
     public void deleteStudentById(String id) {
-        // Build the URL path of the Json object to delete
-        String jsonSingleDataPath = String.format("%s/%s/%s.json",
-                firebaseRtdbBaseUrl, Student.class.getSimpleName(), id);
+        // Build the url path to object to access
+        String firebaseUserId = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getLocalId();
+        String firebaseToken = firebaseAuthSignInSession.getFirebaseAuthSignInResponsePayload().getIdToken();
+        String jsonSingleDataPath = String.format("%s/%s/%s/%s/%s.json?auth=%s",
+                firebaseRtdbBaseUrl,
+                MULTI_TENANT_PATH_PREFIX,
+                Student.class.getSimpleName(),
+                firebaseUserId,
+                id,
+                firebaseToken);
+
         // Create an DELETE Http Request
         var httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(jsonSingleDataPath))
