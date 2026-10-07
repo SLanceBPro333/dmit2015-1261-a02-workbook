@@ -64,7 +64,7 @@ public class StudentJpaService implements StudentService {
             // existingStudent.setPropertyName(student.getPropertyName());
             existingStudent.setFirstName(student.getFirstName());
             existingStudent.setLastName(student.getLastName());
-            existingStudent.setCoursesection(student.getCoursesection());
+            existingStudent.setCourseSection(student.getCourseSection());
 
             student = entityManager.merge(existingStudent);
         }

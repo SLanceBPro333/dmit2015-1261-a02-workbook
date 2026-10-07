@@ -28,7 +28,7 @@ public class Student {
     @NotBlank(message = "last name is required")
     private String lastName;
 
-    private String coursesection;
+    private String courseSection;
 
 
     @Version
@@ -57,7 +57,7 @@ public class Student {
         Student student = new Student();
         student.setFirstName(faker.name().firstName());
         student.setLastName(faker.name().lastName());
-        student.setCoursesection("DMIT2015-A02");
+        student.setCourseSection("DMIT2015-A02");
         return student;
     }
 
